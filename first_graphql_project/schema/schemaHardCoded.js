@@ -3,7 +3,7 @@
 // application so that is may do the
 // proper queries when invoked
 const graphql = require('graphql');
-const axios = require('axios');
+const _ = require('lodash');
 
 const {
     GraphQLObjectType,
@@ -11,6 +11,11 @@ const {
     GraphQLInt,
     GraphQLSchema
 } = graphql;
+
+const users = [
+    { id: '23', firstName: 'Bill', age: 20 },
+    { id: '47', firstName: 'Samantha', age: 21 },
+];
 
 // tells graphql about a user type
 // in our app and what properties it 
@@ -36,8 +41,17 @@ const RootQuery = new GraphQLObjectType({
                 }   
             },
             resolve(parentValue, args) {
-                return axios.get(`http://localhost:3000/users/${args.id}`)
-                            .then((r) => r.data);
+                // parentValue is rarely used
+                // args are more important,
+                // it contains the arguments
+                // originally passed to our query
+                  
+                // this resolve function requires we 
+                // return json data and then
+                // the other logistics of typing
+                // and filtering fields is handled
+                // behind the scenes by graphql
+                return _.find(users, { id: args.id });
             }
         }
     }

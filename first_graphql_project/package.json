@@ -4,13 +4,16 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "json:server": "json-server --watch db.json"
   },
   "dependencies": {
+    "axios": "^0.18.0",
     "colors": "^1.3.3",
     "express": "^4.16.4",
     "express-graphql": "^0.7.1",
     "graphql": "^14.1.1",
+    "json-server": "^0.14.2",
     "lodash": "^4.17.11",
     "nodemon": "^1.18.10"
   }
