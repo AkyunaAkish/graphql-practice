@@ -9,7 +9,8 @@ const {
     GraphQLObjectType,
     GraphQLString,
     GraphQLInt,
-    GraphQLSchema
+    GraphQLSchema,
+    GraphQLList
 } = graphql;
 
 // comes before user since a user has a 
@@ -17,11 +18,18 @@ const {
 // which needs to be established first
 const CompanyType = new GraphQLObjectType({
     name: 'Company',
-    fields: {
+    fields: () => ({
         id: { type: GraphQLString },
         name: { type: GraphQLString },
-        description: { type: GraphQLString }
-    }
+        description: { type: GraphQLString },
+        users: {
+            type: new GraphQLList(UserType),
+            resolve(parentValue, args) {
+                return axios.get(`http://localhost:3000/companies/${parentValue.id}/users`)
+                            .then((r) => r.data);
+            }
+        }
+    })
 });
 
 // tells graphql about a user type
@@ -29,7 +37,7 @@ const CompanyType = new GraphQLObjectType({
 // has
 const UserType = new GraphQLObjectType({
     name: 'User',
-    fields: {
+    fields: () => ({ // arrow func is important for ensuring the types are established before any references are made to a given type
         id: { type: GraphQLString },
         firstName: { type: GraphQLString },
         age: { type: GraphQLInt },
@@ -42,7 +50,7 @@ const UserType = new GraphQLObjectType({
                             .then((r) => r.data);
             }
         }
-    }
+    })
 });
 
 // entry point into our data
@@ -58,6 +66,18 @@ const RootQuery = new GraphQLObjectType({
             },
             resolve(parentValue, args) {
                 return axios.get(`http://localhost:3000/users/${args.id}`)
+                            .then((r) => r.data);
+            }
+        },
+        company: {
+            type: CompanyType,
+            args: { 
+                id: {
+                    type: GraphQLString
+                }   
+            },
+            resolve(parentValue, args) {
+                return axios.get(`http://localhost:3000/companies/${args.id}`)
                             .then((r) => r.data);
             }
         }
@@ -89,4 +109,54 @@ module.exports = new GraphQLSchema({
 //                 description
 //         }
 //     }
+// }
+
+// can continue nesting data queries if desired
+// {
+//     company(id: "2") {
+//         id,
+//             name,
+//             description,
+//             users {
+//             id,
+//                 firstName,
+//                 age,
+//                 company {
+//                 name
+//             }
+//         }
+//     }
+// }
+
+
+// multiple queries with unique result names:
+// {
+//     apple: company(id: "1") {
+//         id,
+//             name,
+//             description,
+//   }
+//     google: company(id: "2") {
+//         id,
+//             name,
+//             description,
+//   }
+// }
+
+// multiple queries with unique result names
+// and a query fragment to share
+// field names for both queries
+// {
+//     apple: company(id: "1") {
+// 		...companyDetails
+//     }
+//     google: company(id: "2") {
+//     ...companyDetails
+//     }
+// }
+
+// fragment companyDetails on Company {
+//     id,
+//         name,
+//         description
 // }
